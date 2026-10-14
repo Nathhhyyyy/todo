@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To-do</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9eeef;
+    --surface: #ffffff;
+    --ink: #17283b;
+    --muted: #6b7a8c;
+    --line: #d3dce0;
+    --accent: #2455e6;
+    --accent-ink: #ffffff;
+    --danger: #c23a3a;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101a24;
+      --surface: #182535;
+      --ink: #e6edf5;
+      --muted: #8a9bb0;
+      --line: #263a50;
+      --accent: #6b94ff;
+      --accent-ink: #0c1626;
+      --danger: #ff7b7b;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    min-height: 100vh;
+    padding: 48px 16px;
+  }
+  main { max-width: 560px; margin: 0 auto; }
+
+  header { margin-bottom: 20px; }
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .summary { color: var(--muted); margin: 4px 0 0; min-height: 1.45em; }
+
+  .progress {
+    height: 6px;
+    background: var(--line);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .progress > div {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width .25s ease;
+  }
+
+  .add {
+    display: flex;
+    gap: 8px;
+    margin: 24px 0 16px;
+  }
+  .add input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .add input::placeholder { color: var(--muted); }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  button:hover { filter: brightness(1.08); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .add input:focus-visible { outline-offset: 0; }
+
+  .filters { display: flex; gap: 4px; margin-bottom: 12px; }
+  .filters button {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 12px;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+  .filters button:hover { filter: none; color: var(--ink); }
+  .filters button[aria-pressed="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: 12px; border: 1.5px solid var(--line); }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  li:last-child { border-bottom: 0; }
+
+  .check {
+    appearance: none;
+    flex: none;
+    width: 22px; height: 22px;
+    margin: 0;
+    border: 2px solid var(--muted);
+    border-radius: 50%;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    background: transparent;
+  }
+  .check::after {
+    content: "";
+    width: 10px; height: 6px;
+    border-left: 2.5px solid var(--accent-ink);
+    border-bottom: 2.5px solid var(--accent-ink);
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+  }
+  .check:checked { background: var(--accent); border-color: var(--accent); }
+  .check:checked::after { opacity: 1; }
+
+  .text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    cursor: text;
+  }
+  li.done .text { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+
+  .edit {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+
+  .icon {
+    flex: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+    font-weight: 500;
+  }
+  .icon:hover { filter: none; color: var(--danger); }
+
+  .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  .link {
+    background: transparent;
+    color: var(--muted);
+    padding: 4px 8px;
+    font-weight: 500;
+    text-decoration: underline;
+  }
+  .link:hover { filter: none; color: var(--danger); }
+  .link[hidden] { display: none; }
+
+  @media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>To-do</h1>
+    <p class="summary" id="summary" aria-live="polite"></p>
+    <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+  </header>
+
+  <div class="add">
+    <input id="new" type="text" placeholder="What needs doing?" aria-label="New task" autocomplete="off" maxlength="200">
+    <button id="addBtn" type="button">Add task</button>
+  </div>
+
+  <div class="filters" role="group" aria-label="Filter tasks">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="active" aria-pressed="false">Active</button>
+    <button type="button" data-filter="done" aria-pressed="false">Done</button>
+  </div>
+
+  <ul id="list"></ul>
+
+  <footer>
+    <span id="count"></span>
+    <button type="button" class="link" id="clear" hidden>Clear completed</button>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const KEY = "todo-app-v1";
+  let todos = load();
+  let filter = "all";
+  let editingId = null;
+
+  const $ = (id) => document.getElementById(id);
+  const list = $("list"), input = $("new");
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+    catch { return []; }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(todos)); } catch {}
+  }
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  function add() {
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+    todos.unshift({ id: uid(), text, done: false });
+    input.value = "";
+    save(); render();
+    input.focus();
+  }
+
+  function render() {
+    const shown = todos.filter(t =>
+      filter === "all" ? true : filter === "done" ? t.done : !t.done);
+
+    list.innerHTML = "";
+    if (!shown.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.style.display = "block";
+      li.textContent =
+        todos.length === 0 ? "No tasks yet. Add your first one above." :
+        filter === "done" ? "Nothing completed yet." : "All caught up.";
+      list.appendChild(li);
+    }
+
+    shown.forEach(t => {
+      const li = document.createElement("li");
+      if (t.done) li.className = "done";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "check";
+      cb.checked = t.done;
+      cb.setAttribute("aria-label", "Mark “" + t.text + "” as done");
+      cb.addEventListener("change", () => { t.done = cb.checked; save(); render(); });
+      li.appendChild(cb);
+
+      if (editingId === t.id) {
+        const ed = document.createElement("input");
+        ed.className = "edit";
+        ed.value = t.text;
+        ed.maxLength = 200;
+        ed.setAttribute("aria-label", "Edit task");
+        const commit = (apply) => {
+          if (editingId !== t.id) return;
+          editingId = null;
+          const v = ed.value.trim();
+          if (apply && v) t.text = v;
+          save(); render();
+        };
+        ed.addEventListener("keydown", e => {
+          if (e.key === "Enter") commit(true);
+          if (e.key === "Escape") commit(false);
+        });
+        ed.addEventListener("blur", () => commit(true));
+        li.appendChild(ed);
+        list.appendChild(li);
+        requestAnimationFrame(() => { ed.focus(); ed.select(); });
+        return;
+      }
+
+      const span = document.createElement("span");
+      span.className = "text";
+      span.textContent = t.text;
+      span.title = "Double-click to edit";
+      span.addEventListener("dblclick", () => { editingId = t.id; render(); });
+      li.appendChild(span);
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "icon";
+      editBtn.textContent = "Edit";
+      editBtn.style.fontSize = ".85rem";
+      editBtn.setAttribute("aria-label", "Edit “" + t.text + "”");
+      editBtn.addEventListener("click", () => { editingId = t.id; render(); });
+      li.appendChild(editBtn);
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "icon";
+      del.textContent = "✕";
+      del.setAttribute("aria-label", "Delete “" + t.text + "”");
+      del.addEventListener("click", () => {
+        todos = todos.filter(x => x.id !== t.id);
+        save(); render();
+      });
+      li.appendChild(del);
+
+      list.appendChild(li);
+    });
+
+    const total = todos.length;
+    const doneCount = todos.filter(t => t.done).length;
+    const left = total - doneCount;
+
+    $("summary").textContent = total === 0 ? "" :
+      left === 0 ? "Everything is done." :
+      left + (left === 1 ? " task" : " tasks") + " left";
+    $("bar").style.width = total ? (doneCount / total * 100) + "%" : "0";
+    $("count").textContent = total ? doneCount + " of " + total + " done" : "";
+    $("clear").hidden = doneCount === 0;
+
+    document.querySelectorAll(".filters button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.filter === filter)));
+  }
+
+  $("addBtn").addEventListener("click", add);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  $("clear").addEventListener("click", () => {
+    todos = todos.filter(t => !t.done);
+    save(); render();
+  });
+  document.querySelectorAll(".filters button").forEach(b =>
+    b.addEventListener("click", () => { filter = b.dataset.filter; render(); }));
+
+  render();
+})();
+</script>
+</body>
+</html>
